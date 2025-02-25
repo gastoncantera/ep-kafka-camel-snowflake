@@ -10,15 +10,15 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-public class SnowpipeService {
-    private static final Logger logger = Logger.getLogger(SnowpipeService.class.getName());
+public class SnowflakeStreamingService {
+    private static final Logger logger = Logger.getLogger(SnowflakeStreamingService.class.getName());
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     private SnowflakeStreamingIngestClient client;
     private SnowflakeStreamingIngestChannel channel;
 
-    public SnowpipeService() throws Exception {
+    public SnowflakeStreamingService() throws Exception {
         String PROFILE_PATH = "src/main/resources/profile.json";
-        ObjectMapper mapper = new ObjectMapper();
 
         Properties props = new Properties();
         Iterator<Map.Entry<String, JsonNode>> propIt =
@@ -49,15 +49,20 @@ public class SnowpipeService {
         client.close();
     }
 
-    public void sendToSnowflake(Map<String, Object> data) {
+    public void sendToSnowflake(String message, Map<String, Object> metadata) {
         try {
-            InsertValidationResponse response = channel.insertRow(data, UUID.randomUUID().toString());
+            Map<String, Object> row = Map.of(
+                    "RECORD_CONTENT", message,
+                    "RECORD_METADATA", mapper.writeValueAsString(metadata)
+            );
+
+            InsertValidationResponse response = channel.insertRow(row, UUID.randomUUID().toString());
 
             if (response.hasErrors()) {
                 throw response.getInsertErrors().get(0).getException();
             }
 
-            logger.log(Level.INFO, "✅ Data sent to Snowflake: " + data);
+            logger.log(Level.INFO, "✅ Data sent to Snowflake: " + row);
         } catch (Exception e) {
             logger.log(Level.SEVERE, "❌ Error sending data to Snowflake: " + e.getMessage());
         }

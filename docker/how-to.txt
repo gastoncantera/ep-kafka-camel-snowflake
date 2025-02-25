@@ -19,7 +19,6 @@ CREATE OR REPLACE TABLE test.public.kafka (
 ------------------------------------------------------------------------------------------------------------------------
 
 kafka-console-producer.sh --bootstrap-server localhost:9092 --topic snowflake-topic
-{ "RECORD_CONTENT": "{\"name\":\"gaston\"}", "RECORD_METADATA":  "{\"rows\": 1}"}
-{ "RECORD_CONTENT": "{\"name\":\"ana\"}", "RECORD_METADATA":  "{\"rows\": 1}"}
+{ "event": "page_view", "page": "homepage", "user_id": "23049834" }
 
 SELECT TOP 10 * FROM test.public.kafka
