@@ -1,4 +1,4 @@
-package com.example;
+package com.example.snowflake;
 
 import net.snowflake.ingest.streaming.*;
 import com.fasterxml.jackson.databind.JsonNode;

@@ -1,5 +1,7 @@
 package com.example;
 
+import com.example.snowflake.SnowflakeStreamingService;
+
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

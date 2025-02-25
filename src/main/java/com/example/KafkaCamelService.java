@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.snowflake.SnowflakeStreamingService;
 import org.apache.camel.CamelContext;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
