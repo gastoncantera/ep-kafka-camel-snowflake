@@ -1,0 +1,25 @@
+[Kafka]
+kafka-topics.sh --bootstrap-server localhost:9092 --create --topic snowflake-topic --partitions 3 --replication-factor 3
+
+[Camel]
+from("kafka:snowflake-topic?brokers=localhost:9092")
+
+[Snowflake Streaming]
+openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:2048
+{ "private_key": "${grep -v PRIVATE private_key.pem | tr -d '\n'}" }
+
+[Snowflake]
+openssl rsa -pubout -in private_key.pem -out public_key.pem
+ALTER USER test SET RSA_PUBLICKEY = '${grep -v KEY public_key.pem | tr -d '\n'}'
+CREATE OR REPLACE TABLE test.public.kafka (
+    RECORD_CONTENT VARIANT,
+    RECORD_METADATA VARIANT
+);
+
+------------------------------------------------------------------------------------------------------------------------
+
+kafka-console-producer.sh --bootstrap-server localhost:9092 --topic snowflake-topic
+{ "RECORD_CONTENT": "{\"name\":\"gaston\"}", "RECORD_METADATA":  "{\"rows\": 1}"}
+{ "RECORD_CONTENT": "{\"name\":\"ana\"}", "RECORD_METADATA":  "{\"rows\": 1}"}
+
+SELECT TOP 10 * FROM test.public.kafka
