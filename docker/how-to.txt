@@ -11,7 +11,7 @@ openssl genpkey -algorithm RSA -out private_key.pem -pkeyopt rsa_keygen_bits:204
 [Snowflake]
 openssl rsa -pubout -in private_key.pem -out public_key.pem
 ALTER USER test SET RSA_PUBLICKEY = '${grep -v KEY public_key.pem | tr -d '\n'}'
-CREATE OR REPLACE TABLE test.public.kafka (
+CREATE OR REPLACE TABLE test.public."kafka-streaming" (
     RECORD_CONTENT VARIANT,
     RECORD_METADATA VARIANT
 );
@@ -21,4 +21,4 @@ CREATE OR REPLACE TABLE test.public.kafka (
 kafka-console-producer.sh --bootstrap-server localhost:9092 --topic snowflake-topic
 { "event": "page_view", "page": "homepage", "user_id": "23049834" }
 
-SELECT TOP 10 * FROM test.public.kafka
+SELECT TOP 10 * FROM test.public."kafka-streaming"

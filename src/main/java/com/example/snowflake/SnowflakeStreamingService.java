@@ -37,7 +37,7 @@ public class SnowflakeStreamingService {
         OpenChannelRequest request = OpenChannelRequest.builder("MY_CHANNEL")
                 .setDBName("test")
                 .setSchemaName("public")
-                .setTableName("kafka")
+                .setTableName("\"kafka-streaming\"")
                 .setOnErrorOption(OpenChannelRequest.OnErrorOption.CONTINUE)
                 .build();
 
