@@ -31,11 +31,25 @@ public class KafkaCamelService {
         @Override
         public void configure() {
             from("kafka:snowflake-topic?brokers=localhost:9092")
+
+                    // Snowpipe Streaming: Snowflake Ingest Service Java SDK
+                    // https://github.com/snowflakedb/snowflake-ingest-java
                     .process(exchange ->
                             snowflakeStreamingService.sendToSnowflake(
                                     exchange.getIn().getBody(String.class),
                                     exchange.getIn().getHeaders()
                             ))
+
+                    // Camel Kafka Connector: Kamelet Snowflake Sink
+                    // https://camel.apache.org/camel-kafka-connector/4.8.x/reference/connectors/camel-snowflake-sink-kafka-sink-connector.html
+                    .to("kamelet:snowflake-sink"
+                            + "?instanceUrl=http://snowflake.localhost.localstack.cloud:4566"
+                            + "&username=test"
+                            + "&password=test"
+                            + "&databaseName=test"
+                            + "&query=INSERT INTO public.\"kafka-streaming\" (RECORD_CONTENT, RECORD_METADATA) VALUES ('FIXME', 'kamelet:snowflake-sink')"
+                    )
+
                     .log(LoggingLevel.INFO, "Message processed and sent to Snowflake");
         }
     }
