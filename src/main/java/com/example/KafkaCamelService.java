@@ -1,16 +1,15 @@
 package com.example;
 
 import com.example.snowflake.SnowflakeStreamingService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.camel.CamelContext;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class KafkaCamelService {
-    private final CamelContext camelContext = new DefaultCamelContext();
+    private static final CamelContext camelContext = new DefaultCamelContext();
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public KafkaCamelService(SnowflakeStreamingService snowflakeStreamingService) throws Exception {
         camelContext.addRoutes(new KafkaToSnowflakeRoute(snowflakeStreamingService));
@@ -37,24 +36,29 @@ public class KafkaCamelService {
 
                     // Snowpipe Streaming: Snowflake Ingest Service Java SDK
                     // https://github.com/snowflakedb/snowflake-ingest-java
+                    .setHeader("ep-kafka-camel-snowflake.source", constant("snowflake.ingest.streaming"))
                     .process(exchange ->
                             snowflakeStreamingService.sendToSnowflake(
                                     exchange.getIn().getBody(String.class),
-                                    exchange.getIn().getHeaders()
+                                    mapper.writeValueAsString(exchange.getIn().getHeaders())
                             ))
 
                     // Apache Camel Kafka Connector: Kamelet Snowflake Sink
                     // https://github.com/apache/camel-kafka-connector/tree/main/connectors/camel-snowflake-sink-kafka-connector
                     // https://camel.apache.org/camel-kafka-connector/4.8.x/reference/connectors/camel-snowflake-sink-kafka-sink-connector.html
+                    .setHeader("ep-kafka-camel-snowflake.source", constant("kamelet:snowflake-sink"))
+                    .process(exchange ->
+                            exchange.getIn().setHeader("jsonHeaders", mapper.writeValueAsString(exchange.getIn().getHeaders()))
+                    )
                     .toD("kamelet:snowflake-sink"
                             + "?instanceUrl=http://snowflake.localhost.localstack.cloud:4566"
                             + "&username=test"
                             + "&password=test"
                             + "&databaseName=test"
-                            + "&query=INSERT INTO public.\"kafka-streaming\" (RECORD_CONTENT,RECORD_METADATA) VALUES ('${body}','${headers}')"
+                            + "&query=INSERT INTO public.\"kafka-streaming\" VALUES ('${body}','${headerAs(jsonHeaders, java.lang.String)}')"
                     )
 
-                    .log(LoggingLevel.INFO, "Message processed and sent to Snowflake");
+                    .log(LoggingLevel.INFO, "Kafka message processed");
         }
     }
 }

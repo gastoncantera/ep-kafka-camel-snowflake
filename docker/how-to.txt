@@ -21,4 +21,14 @@ CREATE OR REPLACE TABLE test.public."kafka-streaming" (
 kafka-console-producer.sh --bootstrap-server localhost:9092 --topic snowflake-topic
 { "event": "page_view", "page": "homepage", "user_id": "23049834" }
 
-SELECT TOP 10 * FROM test.public."kafka-streaming"
+SELECT TOP 10
+    RECORD_METADATA:"ep-kafka-camel-snowflake.source" AS SOURCE,
+    RECORD_CONTENT
+FROM test.public."kafka-streaming"
+ORDER BY SOURCE;
+
+SELECT
+    RECORD_METADATA:"ep-kafka-camel-snowflake.source" AS SOURCE,
+    COUNT(RECORD_CONTENT)
+FROM test.public."kafka-streaming"
+GROUP BY RECORD_METADATA:"ep-kafka-camel-snowflake.source"
