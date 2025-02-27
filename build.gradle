@@ -24,7 +24,7 @@ dependencies {
     implementation('net.snowflake:snowflake-ingest-sdk:2.0.5')
     implementation('javax.xml.bind:jaxb-api:2.3.1')
 
-    // Apache Camel: Snowflake Sink
+    // Apache Camel Kafka Connector: Kamelet Snowflake Sink
     implementation 'org.apache.camel.kafkaconnector:camel-snowflake-sink-kafka-connector:4.8.3'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')

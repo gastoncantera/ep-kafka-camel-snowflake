@@ -40,7 +40,8 @@ public class KafkaCamelService {
                                     exchange.getIn().getHeaders()
                             ))
 
-                    // Camel Kafka Connector: Kamelet Snowflake Sink
+                    // Apache Camel Kafka Connector: Kamelet Snowflake Sink
+                    // https://github.com/apache/camel-kafka-connector/tree/main/connectors/camel-snowflake-sink-kafka-connector
                     // https://camel.apache.org/camel-kafka-connector/4.8.x/reference/connectors/camel-snowflake-sink-kafka-sink-connector.html
                     .to("kamelet:snowflake-sink"
                             + "?instanceUrl=http://snowflake.localhost.localstack.cloud:4566"
