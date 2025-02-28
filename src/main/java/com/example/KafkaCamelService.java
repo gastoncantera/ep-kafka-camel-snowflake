@@ -62,7 +62,7 @@ public class KafkaCamelService {
                             + "&username=test"
                             + "&password=test"
                             + "&databaseName=test"
-                            + "&query=INSERT INTO public.\"kafka-streaming\" VALUES ('${body}','${headerAs(jsonHeaders, java.lang.String)}')"
+                            + "&query=INSERT INTO public.kafka_streaming VALUES ('${body}','${headerAs(jsonHeaders, java.lang.String)}')"
                     )
 
                     .log(LoggingLevel.INFO, "Kafka message processed");
