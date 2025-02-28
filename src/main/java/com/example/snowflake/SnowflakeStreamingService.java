@@ -46,13 +46,15 @@ public class SnowflakeStreamingService {
         client.close();
     }
 
-    public void sendToSnowflake(String content, String metadata) {
+    public void sendToSnowflake(List<Object> contents, String metadata) {
         try {
-            InsertValidationResponse response = channel.insertRow(
-                    Map.of(
-                            "RECORD_CONTENT", content,
-                            "RECORD_METADATA", metadata
-                    ),
+            InsertValidationResponse response = channel.insertRows(
+                    contents.stream().map(content ->
+                            Map.of(
+                                    "RECORD_CONTENT", content,
+                                    "RECORD_METADATA", metadata
+                            )
+                    ).toList(),
                     UUID.randomUUID().toString()
             );
 
@@ -60,7 +62,7 @@ public class SnowflakeStreamingService {
                 throw response.getInsertErrors().get(0).getException();
             }
 
-            logger.log(Level.INFO, "✅ Data sent to Snowflake");
+            logger.log(Level.INFO, "✅ Data sent to Snowflake (" + contents.size() + " rows)");
         } catch (Exception e) {
             logger.log(Level.SEVERE, "❌ Error sending data to Snowflake: " + e.getMessage());
         }

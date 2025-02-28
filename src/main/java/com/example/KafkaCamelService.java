@@ -6,6 +6,9 @@ import org.apache.camel.CamelContext;
 import org.apache.camel.LoggingLevel;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
+import org.apache.camel.processor.aggregate.GroupedBodyAggregationStrategy;
+
+import java.util.List;
 
 public class KafkaCamelService {
     private static final CamelContext camelContext = new DefaultCamelContext();
@@ -32,14 +35,17 @@ public class KafkaCamelService {
 
         @Override
         public void configure() {
-            from("kafka:snowflake-topic?brokers=localhost:9092&groupId=ep-kafka-camel-snowflake")
+            from("kafka:snowflake-topic?brokers=localhost:9092&groupId=ep-kafka-camel-snowflake&maxPollRecords=5")
+                    .aggregate(constant(true), new GroupedBodyAggregationStrategy())
+                    .completionSize(2)
+                    .completionTimeout(2000)
 
                     // Snowpipe Streaming: Snowflake Ingest Service Java SDK
                     // https://github.com/snowflakedb/snowflake-ingest-java
                     .setHeader("ep-kafka-camel-snowflake.source", constant("snowflake.ingest.streaming"))
                     .process(exchange ->
                             snowflakeStreamingService.sendToSnowflake(
-                                    exchange.getIn().getBody(String.class),
+                                    exchange.getIn().getBody(List.class),
                                     mapper.writeValueAsString(exchange.getIn().getHeaders())
                             ))
 
@@ -50,6 +56,7 @@ public class KafkaCamelService {
                     .process(exchange ->
                             exchange.getIn().setHeader("jsonHeaders", mapper.writeValueAsString(exchange.getIn().getHeaders()))
                     )
+                    .split(body()) // kamelet:snowflake-sink does not support aggregations
                     .toD("kamelet:snowflake-sink"
                             + "?instanceUrl=http://snowflake.localhost.localstack.cloud:4566"
                             + "&username=test"

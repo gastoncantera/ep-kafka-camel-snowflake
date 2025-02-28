@@ -19,7 +19,11 @@ CREATE OR REPLACE TABLE test.public."kafka-streaming" (
 ------------------------------------------------------------------------------------------------------------------------
 
 kafka-console-producer.sh --bootstrap-server localhost:9092 --topic snowflake-topic
-{ "event": "page_view", "page": "homepage", "user_id": "23049834" }
+{"name": "Alice", "age": 30, "active": true}
+{"city": "New York", "population": 8419600}
+{"product": "Laptop", "price": 999.99, "in_stock": true}
+{"user": {"id": 1, "name": "Bob"}, "status": "active"}
+{"order": {"id": 123, "total": 59.99}, "discount": 10}
 
 SELECT TOP 10
     RECORD_METADATA:"ep-kafka-camel-snowflake.source" AS SOURCE,
